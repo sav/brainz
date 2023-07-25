@@ -1,4 +1,4 @@
-// main.go: Delete the most recent listened tracks.
+// main.go: Brainz command.
 
 package main
 
@@ -15,20 +15,19 @@ import (
 )
 
 // Track describes a music track
-type Track struct { // NOTE `additional_info` seems unnecessary IMO. I'd declare `recording_msid` directly as a member of `Track` instead. (Flat > Nested!)
+type Track struct {
 	Name   string `json:"track_name"`
 	Artist string `json:"artist_name"`
 }
 
-// Listen describes a Recording of a Track being listened by the user in a given ListenedAt time.
+// Listen describes the Recording of a Track listened at a given ListenedAt time.
 type Listen struct {
-	Recording string `json:"recording_msid"` // NOTE Poorly designed by MetaBrainz team IMHO. `recording_msid` could be a member of the `Track` but it actually doesn't seem to exist (cohesively at least) in v1.
-	// Another point worth mentioning regarding the model: unless `user_name` varies, for some reason I'm not aware, repeating it in every `Listen` item looks noisy.
-	Track      Track `json:"track_metadata"`
-	ListenedAt int64 `json:"listened_at"`
+	Recording  string `json:"recording_msid"`
+	Track      Track  `json:"track_metadata"`
+	ListenedAt int64  `json:"listened_at"`
 }
 
-// Time the track/recording was listened.
+// Time the Track/Recording was listened to.
 func (listen Listen) Time() time.Time {
 	return time.Unix(listen.ListenedAt, 0)
 }
@@ -46,14 +45,13 @@ type Payload struct {
 
 // Listens contains a Payload describing a set of Listen's.
 type Listens struct {
-	Payload Payload `json:"payload"` // NOTE What's the point of having this indirection in the model? Why not `type Listens struct { Count int, Latest int, Listens []Listen }`?
+	Payload Payload `json:"payload"`
 }
 
 func deleteListen(listen Listen) bool {
-	// define the url of the rest api endpoint
 	url := "https://api.listenbrainz.org/1/delete-listen"
 
-	// create a payload to send in the request
+	// Create a payload to send in the request
 	payload := map[string]string{
 		"listened_at":    fmt.Sprintf("%d", listen.ListenedAt),
 		"recording_msid": listen.Recording,
@@ -64,7 +62,7 @@ func deleteListen(listen Listen) bool {
 		panic(err)
 	}
 
-	// create a new http get request
+	// Create a new http get request
 	req, err := http.NewRequest("post", url, bytes.NewBuffer(jsonpayload))
 	if err != nil {
 		fmt.Println("error creating request:", err)
@@ -73,7 +71,7 @@ func deleteListen(listen Listen) bool {
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", fmt.Sprintf("token %s", os.Getenv("brainz_token")))
 
-	// make the request
+	// Make the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -90,13 +88,9 @@ func deleteListen(listen Listen) bool {
 }
 
 func getListens() string {
-	// Define the URL of the REST API endpoint
 	url := fmt.Sprintf("https://api.listenbrainz.org/1/user/%s/listens?count=100", userName)
-
-	// Create a new HTTP client
 	client := &http.Client{}
 
-	// Create a new HTTP GET request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
