@@ -132,6 +132,7 @@ func init() {
 }
 
 func usage() {
+	fmt.Printf("This program requires the environment variable BRAINZ_TOKEN to be defined.\n\n")
 	fmt.Println("Usage: go run main.go [-ldvh] -u <username> -s <regexp>")
 	fmt.Println("   -l: List matched listens.")
 	fmt.Println("   -d: Delete matched listens.")
