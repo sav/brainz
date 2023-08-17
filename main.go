@@ -170,15 +170,15 @@ func brainz() {
 }
 
 func main() {
-	if os.Getenv("BRAINZ_TOKEN") == "" {
-		fmt.Println("Error: please define BRAINZ_TOKEN.")
-		os.Exit(1)
-	}
-
 	flag.Parse()
 
 	if showUsage {
 		usage()
+	}
+
+	if os.Getenv("BRAINZ_TOKEN") == "" {
+		fmt.Println("Error: please define BRAINZ_TOKEN.")
+		os.Exit(1)
 	}
 
 	if userName == "" {
