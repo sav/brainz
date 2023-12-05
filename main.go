@@ -91,30 +91,42 @@ func deleteListen(listen Listen) bool {
 	return resp.Status == "200 ok"
 }
 
-func getListens() string {
+func getListens(max int64) Listens {
 	url := fmt.Sprintf("%s/user/%s/listens?count=1000", ListenBrainzAPI, userName)
+	if max > 0 {
+		url = fmt.Sprintf("%s&max_ts=%d", url, max)
+	}
+
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-		return ""
+		return Listens{}
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-		return ""
+		return Listens{}
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response body:", err)
-		return ""
+		return Listens{}
 	}
 
-	return string(body)
+	var listens Listens
+
+	err = json.Unmarshal(body, &listens)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return Listens{}
+	}
+
+	return listens
 }
 
 var (
@@ -148,13 +160,7 @@ func usage() {
 }
 
 func brainz() {
-	var listens Listens
-
-	err := json.Unmarshal([]byte(getListens()), &listens)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	var listens Listens = getListens(0)
 
 	for _, listen := range listens.Payload.Listens {
 		match, err := regexp.MatchString("(?i)"+searchPattern, listen.String())
