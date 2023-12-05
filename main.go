@@ -157,7 +157,7 @@ func brainz() {
 	}
 
 	for _, listen := range listens.Payload.Listens {
-		match, err := regexp.MatchString(searchPattern, listen.String())
+		match, err := regexp.MatchString("(?i)"+searchPattern, listen.String())
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
