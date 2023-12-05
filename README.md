@@ -10,10 +10,10 @@ go install github.com/sav/brainz@latest
 
 ## Usage
 
-First define `BRAINZ_TOKEN` environment with an API Token from [ListenBrainz](https://listenbrainz.org) website:
+First define `LISTENBRAINZ_TOKEN` environment with an API Token from [ListenBrainz](https://listenbrainz.org) website:
 
 ```
-export BRAINZ_TOKEN=<token>
+export LISTENBRAINZ_TOKEN=<token>
 ```
 
 ### Searching

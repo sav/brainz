@@ -132,7 +132,7 @@ func init() {
 }
 
 func usage() {
-	fmt.Printf("This program requires the environment variable BRAINZ_TOKEN to be defined.\n\n")
+	fmt.Printf("This program requires the environment variable LISTENBRAINZ_TOKEN to be defined.\n\n")
 	fmt.Println("Usage: go run main.go [-ldvh] -u <username> -s <regexp>")
 	fmt.Println("   -l: List matched listens.")
 	fmt.Println("   -d: Delete matched listens.")
@@ -177,10 +177,12 @@ func main() {
 		usage()
 	}
 
-	if os.Getenv("BRAINZ_TOKEN") == "" {
-		fmt.Println("Error: please define BRAINZ_TOKEN.")
+	if os.Getenv("LISTENBRAINZ_TOKEN") == "" {
+		fmt.Println("Error: please define LISTENBRAINZ_TOKEN.")
 		os.Exit(1)
 	}
+
+	os.Setenv("BRAINZ_TOKEN", os.Getenv("LISTENBRAINZ_TOKEN"))
 
 	if userName == "" {
 		fmt.Println("Error: username is missing.")
