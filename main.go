@@ -14,6 +14,10 @@ import (
 	"time"
 )
 
+// ListenBrainzAPI points to the root of the ListenBrainz REST API.
+// https://listenbrainz.readthedocs.io/en/latest/users/api
+const ListenBrainzAPI = "https://api.listenbrainz.org/1"
+
 // Track describes a music track
 type Track struct {
 	Name   string `json:"track_name"`
@@ -49,7 +53,7 @@ type Listens struct {
 }
 
 func deleteListen(listen Listen) bool {
-	url := "https://api.listenbrainz.org/1/delete-listen"
+	url := ListenBrainzAPI + "/delete-listen"
 
 	// Create a payload to send in the request
 	payload := map[string]string{
@@ -88,7 +92,7 @@ func deleteListen(listen Listen) bool {
 }
 
 func getListens() string {
-	url := fmt.Sprintf("https://api.listenbrainz.org/1/user/%s/listens?count=100", userName)
+	url := fmt.Sprintf("%s/user/%s/listens?count=100", ListenBrainzAPI, userName)
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", url, nil)
