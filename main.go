@@ -92,7 +92,7 @@ func deleteListen(listen Listen) bool {
 }
 
 func getListens() string {
-	url := fmt.Sprintf("%s/user/%s/listens?count=100", ListenBrainzAPI, userName)
+	url := fmt.Sprintf("%s/user/%s/listens?count=1000", ListenBrainzAPI, userName)
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", url, nil)
