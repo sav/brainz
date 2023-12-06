@@ -56,6 +56,13 @@ type Listens struct {
 	Payload Payload `json:"payload"`
 }
 
+func (listens *Listens) length() int {
+	if listens != nil {
+		return len(listens.Payload.Listens)
+	}
+	return 0
+}
+
 func deleteListen(listen Listen) bool {
 	url := ListenBrainzAPI + "/delete-listen"
 
