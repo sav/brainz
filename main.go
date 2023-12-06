@@ -205,8 +205,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	os.Setenv("BRAINZ_TOKEN", os.Getenv("LISTENBRAINZ_TOKEN"))
-
 	if userName == "" {
 		fmt.Println("Error: username is missing.")
 		usage()
