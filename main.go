@@ -172,7 +172,7 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&listListens, "l", false, "Print matched listens.")
+	flag.BoolVar(&listListens, "l", true, "Print matched listens.")
 	flag.BoolVar(&deleteListens, "d", false, "Delete matched listens.")
 	flag.BoolVar(&verbosePrint, "v", false, "Debug/verbose output.")
 	flag.StringVar(&userName, "u", "", "The user name or login ID.")
@@ -183,7 +183,7 @@ func init() {
 func usage() {
 	fmt.Printf("This program requires the environment variable LISTENBRAINZ_TOKEN to be defined.\n\n")
 	fmt.Println("Usage: go run main.go [-ldvh] -u <username> -s <regexp>")
-	fmt.Println("   -l: List matched listens.")
+	fmt.Println("   -l: List matched listens. (default)")
 	fmt.Println("   -d: Delete matched listens.")
 	fmt.Println("   -u: The user name or login ID.")
 	fmt.Println("   -s: Search regexp pattern.")
@@ -230,11 +230,6 @@ func main() {
 
 	if searchPattern == "" {
 		fmt.Println("Error: search pattern not provided.")
-		usage()
-	}
-
-	if !(listListens || deleteListens) {
-		fmt.Println("Error: you must provide at least one of the commands -l and/or -d.")
 		usage()
 	}
 
