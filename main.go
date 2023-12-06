@@ -102,6 +102,26 @@ func deleteListen(listen Listen) bool {
 	return resp.Status == "200 ok"
 }
 
+func lastTimestamp(listens []Listen) int64 {
+	return listens[len(listens)-1].ListenedAt
+}
+
+func getAllListens() []Listen {
+	listens := make([]Listen, ItemsPerPage)
+	timestamp := int64(0)
+	for {
+		page := getListens(timestamp)
+		if page.length() == 0 {
+			break
+		}
+		timestamp = lastTimestamp(page.Payload.Listens)
+		for _, listen := range page.Payload.Listens {
+			listens = append(listens, listen)
+		}
+	}
+	return listens
+}
+
 func getListens(max int64) Listens {
 	url := fmt.Sprintf("%s/user/%s/listens?count=%d",
 		ListenBrainzAPI, userName, ItemsPerPage)
@@ -173,15 +193,13 @@ func usage() {
 }
 
 func brainz() {
-	var listens Listens = getListens(0)
-
-	for _, listen := range listens.Payload.Listens {
+	var listens []Listen = getAllListens()
+	for _, listen := range listens {
 		match, err := regexp.MatchString("(?i)"+searchPattern, listen.String())
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
-
 		if match {
 			if listListens {
 				fmt.Println(listen)
