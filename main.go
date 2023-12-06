@@ -18,6 +18,10 @@ import (
 // https://listenbrainz.readthedocs.io/en/latest/users/api
 const ListenBrainzAPI = "https://api.listenbrainz.org/1"
 
+// ItemsPerPage determines how many items to retrieve per request.
+// Defaults to the maximum of MAX_ITEMS_PER_GET.
+const ItemsPerPage = 1000
+
 // Track describes a music track
 type Track struct {
 	Name   string `json:"track_name"`
@@ -92,7 +96,9 @@ func deleteListen(listen Listen) bool {
 }
 
 func getListens(max int64) Listens {
-	url := fmt.Sprintf("%s/user/%s/listens?count=1000", ListenBrainzAPI, userName)
+	url := fmt.Sprintf("%s/user/%s/listens?count=%d",
+		ListenBrainzAPI, userName, ItemsPerPage)
+
 	if max > 0 {
 		url = fmt.Sprintf("%s&max_ts=%d", url, max)
 	}
