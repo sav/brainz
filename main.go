@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+// Maximum value of an int64.
+const MaxInt64 = int64(^uint(0) >> 1)
+
 // ListenBrainzAPI points to the root of the ListenBrainz REST API.
 // https://listenbrainz.readthedocs.io/en/latest/users/api
 const ListenBrainzAPI = "https://api.listenbrainz.org/1"
@@ -107,7 +110,7 @@ func lastTimestamp(listens []Listen) int64 {
 }
 
 func getAllListens() []Listen {
-	listens := make([]Listen, ItemsPerPage)
+	var listens []Listen
 	timestamp := int64(0)
 	for {
 		page := getListens(timestamp)
@@ -117,6 +120,9 @@ func getAllListens() []Listen {
 		timestamp = lastTimestamp(page.Payload.Listens)
 		for _, listen := range page.Payload.Listens {
 			listens = append(listens, listen)
+			if int64(len(listens)) >= maxCount {
+				return listens
+			}
 		}
 	}
 	return listens
@@ -163,7 +169,7 @@ func getListens(max int64) Listens {
 }
 
 var (
-	listListens   bool
+	maxCount      int64
 	deleteListens bool
 	userName      string
 	searchPattern string
@@ -172,18 +178,17 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&listListens, "l", true, "Print matched listens.")
+	flag.Int64Var(&maxCount, "c", MaxInt64, "Maxium number of items.")
 	flag.BoolVar(&deleteListens, "d", false, "Delete matched listens.")
 	flag.BoolVar(&verbosePrint, "v", false, "Debug/verbose output.")
 	flag.StringVar(&userName, "u", "", "The user name or login ID.")
-	flag.StringVar(&searchPattern, "s", "", "The search pattern.")
+	flag.StringVar(&searchPattern, "s", ".+", "The search pattern.")
 	flag.BoolVar(&showUsage, "h", false, "Show usage help.")
 }
 
 func usage() {
-	fmt.Printf("This program requires the environment variable LISTENBRAINZ_TOKEN to be defined.\n\n")
-	fmt.Println("Usage: go run main.go [-ldvh] -u <username> -s <regexp>")
-	fmt.Println("   -l: List matched listens. (default)")
+	fmt.Println("Usage: go run main.go [-lcdvh] -u <username> -s <regexp>")
+	fmt.Println("   -c: Limit action to a number of items.")
 	fmt.Println("   -d: Delete matched listens.")
 	fmt.Println("   -u: The user name or login ID.")
 	fmt.Println("   -s: Search regexp pattern.")
@@ -201,9 +206,7 @@ func brainz() {
 			os.Exit(1)
 		}
 		if match {
-			if listListens {
-				fmt.Println(listen)
-			}
+			fmt.Println(listen)
 			if deleteListens && !deleteListen(listen) {
 				fmt.Printf("Warning: failed deleting listen: %s", listen)
 			}
@@ -228,8 +231,8 @@ func main() {
 		usage()
 	}
 
-	if searchPattern == "" {
-		fmt.Println("Error: search pattern not provided.")
+	if maxCount < 1 {
+		fmt.Println("Error: invalid maxCount:", maxCount)
 		usage()
 	}
 
