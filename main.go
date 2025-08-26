@@ -82,13 +82,13 @@ func deleteListen(listen Listen) bool {
 	}
 
 	// Create a new http get request
-	req, err := http.NewRequest("post", url, bytes.NewBuffer(jsonpayload))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonpayload))
 	if err != nil {
 		fmt.Println("error creating request:", err)
 		return false
 	}
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", fmt.Sprintf("token %s", os.Getenv("brainz_token")))
+	req.Header.Set("authorization", fmt.Sprintf("token %s", os.Getenv("LISTENBRAINZ_TOKEN")))
 
 	// Make the request
 	client := &http.Client{}
@@ -103,7 +103,7 @@ func deleteListen(listen Listen) bool {
 			listen.Time(), listen.Recording, resp.Status)
 	}
 
-	return resp.Status == "200 ok"
+	return resp.StatusCode == http.StatusOK
 }
 
 func lastTimestamp(listens []Listen) int64 {
