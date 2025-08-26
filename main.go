@@ -78,19 +78,14 @@ func perr(format string, args ...any) {
 
 func deleteListen(listen Listen) bool {
 	url := ListenBrainzAPI + "/delete-listen"
-
-	// Create a payload to send in the request
 	payload := map[string]string{
 		"listened_at":    fmt.Sprintf("%d", listen.ListenedAt),
 		"recording_msid": listen.Recording,
 	}
-
 	jsonpayload, err := json.Marshal(payload)
 	if err != nil {
 		panic(err)
 	}
-
-	// Create a new http get request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonpayload))
 	if err != nil {
 		perr("error creating request: %s", err)
@@ -104,9 +99,7 @@ func deleteListen(listen Listen) bool {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	log("deletelisten(%s, %s): response status: %s\n", listen.Time(), listen.Recording, resp.Status)
-
+	log("deleting: %s (status=%s)\n", listen.Recording, resp.Status)
 	return resp.StatusCode == http.StatusOK
 }
 
@@ -200,7 +193,7 @@ func init() {
 
 func usage() {
 	flag.Usage()
-	os.Exit(2)
+	os.Exit(1)
 }
 
 func parseTimeFilter(input string) (int64, error) {
@@ -265,17 +258,14 @@ func main() {
 		perr("error: please define LISTENBRAINZ_TOKEN.")
 		os.Exit(1)
 	}
-
 	if userName == "" {
 		perr("error: username is missing.")
 		usage()
 	}
-
 	if maxCount < 1 {
 		perr("error: invalid maxCount: %d", maxCount)
 		usage()
 	}
-
 	var err error
 	cutOffTime, err = parseTimeFilter(timeFilter)
 	if err != nil {
