@@ -188,13 +188,7 @@ func init() {
 }
 
 func usage() {
-	fmt.Println("Usage: go run main.go [-lcdvh] -u <username> -s <regexp>")
-	fmt.Println("   -c: Limit action to a number of items.")
-	fmt.Println("   -d: Delete matched listens.")
-	fmt.Println("   -u: The user name or login ID.")
-	fmt.Println("   -s: Search regexp pattern.")
-	fmt.Println("   -v: Debug/verbose output.")
-	fmt.Println("   -h: Show this help.")
+	flag.Usage()
 	os.Exit(2)
 }
 
