@@ -67,6 +67,12 @@ func (listens *Listens) length() int {
 	return 0
 }
 
+func log(format string, args ...any) {
+	if verbosePrint {
+		fmt.Fprintf(os.Stderr, format, args...)
+	}
+}
+
 func deleteListen(listen Listen) bool {
 	url := ListenBrainzAPI + "/delete-listen"
 
@@ -98,10 +104,7 @@ func deleteListen(listen Listen) bool {
 	}
 	defer resp.Body.Close()
 
-	if verbosePrint {
-		fmt.Printf("(debug) deletelisten(%s, %s): response status: %s\n",
-			listen.Time(), listen.Recording, resp.Status)
-	}
+	log("deletelisten(%s, %s): response status: %s\n", listen.Time(), listen.Recording, resp.Status)
 
 	return resp.StatusCode == http.StatusOK
 }
