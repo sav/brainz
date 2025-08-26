@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"regexp"
@@ -178,7 +179,7 @@ var (
 )
 
 func init() {
-	flag.Int64Var(&maxCount, "c", MaxInt64, "Maxium number of items.")
+	flag.Int64Var(&maxCount, "c", math.MaxUint16, "Maxium number of items.")
 	flag.BoolVar(&deleteListens, "d", false, "Delete matched listens.")
 	flag.BoolVar(&verbosePrint, "v", false, "Debug/verbose output.")
 	flag.StringVar(&userName, "u", "", "The user name or login ID.")
