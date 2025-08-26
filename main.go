@@ -8,22 +8,21 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"os"
 	"regexp"
 	"time"
 )
 
-// Maximum value of an int64.
-const MaxInt64 = int64(^uint(0) >> 1)
+// Maximum value of an uint16.
+const MaxUint16 int64 = int64(uint16(1<<16 - 1))
 
 // ListenBrainzAPI points to the root of the ListenBrainz REST API.
 // https://listenbrainz.readthedocs.io/en/latest/users/api
 const ListenBrainzAPI = "https://api.listenbrainz.org/1"
 
 // ItemsPerPage determines how many items to retrieve per request.
-// Defaults to the maximum of MAX_ITEMS_PER_GET.
+// Defaults to the maximum of MAX_ITEMS_PER_GET (1000).
 const ItemsPerPage = 1000
 
 // Track describes a music track
@@ -187,7 +186,7 @@ var (
 )
 
 func init() {
-	flag.Int64Var(&maxCount, "c", math.MaxUint16, "Maxium number of items.")
+	flag.Int64Var(&maxCount, "c", MaxUint16, "Maxium number of items.")
 	flag.BoolVar(&deleteListens, "d", false, "Delete matched listens.")
 	flag.BoolVar(&verbosePrint, "v", false, "Debug/verbose output.")
 	flag.StringVar(&userName, "u", "", "The user name or login ID.")
