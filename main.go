@@ -97,9 +97,7 @@ func deleteListen(listen Listen) bool {
 		return false
 	}
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", fmt.Sprintf("token %s", os.Getenv("LISTENBRAINZ_TOKEN")))
-
-	// Make the request
+	req.Header.Set("authorization", fmt.Sprintf("token %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -187,6 +185,7 @@ var (
 	showUsage     bool
 	timeFilter    string
 	cutOffTime    int64
+	token         string
 )
 
 func init() {
@@ -261,9 +260,9 @@ func main() {
 	if showUsage {
 		usage()
 	}
-
-	if os.Getenv("LISTENBRAINZ_TOKEN") == "" {
-		fmt.Println("Error: please define LISTENBRAINZ_TOKEN.")
+	token = os.Getenv("LISTENBRAINZ_TOKEN")
+	if token == "" {
+		perr("error: please define LISTENBRAINZ_TOKEN.")
 		os.Exit(1)
 	}
 
