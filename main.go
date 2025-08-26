@@ -45,7 +45,8 @@ func (listen Listen) Time() time.Time {
 }
 
 func (listen Listen) String() string {
-	return "<" + listen.Recording + "> " + listen.Track.Artist + " - \"" + listen.Track.Name + "\""
+	return "<" + listen.Time().Format(time.RFC3339) + "> " +
+		listen.Track.Artist + " - \"" + listen.Track.Name + "\""
 }
 
 // Payload contains a set of Listen's.
@@ -120,6 +121,9 @@ func getAllListens() []Listen {
 		}
 		timestamp = lastTimestamp(page.Payload.Listens)
 		for _, listen := range page.Payload.Listens {
+			if cutOffTime > 0 && listen.ListenedAt < cutOffTime {
+				return listens
+			}
 			listens = append(listens, listen)
 			if int64(len(listens)) >= maxCount {
 				return listens
@@ -176,6 +180,8 @@ var (
 	searchPattern string
 	verbosePrint  bool
 	showUsage     bool
+	timeFilter    string
+	cutOffTime    int64
 )
 
 func init() {
@@ -185,6 +191,7 @@ func init() {
 	flag.StringVar(&userName, "u", "", "The user name or login ID.")
 	flag.StringVar(&searchPattern, "s", ".+", "The search pattern.")
 	flag.BoolVar(&showUsage, "h", false, "Show usage help.")
+	flag.StringVar(&timeFilter, "t", "", "Only listens within the range (e.g. 10m, 5h, 1d, 1y).")
 }
 
 func usage() {
@@ -192,9 +199,43 @@ func usage() {
 	os.Exit(2)
 }
 
+func parseTimeFilter(input string) (int64, error) {
+	if input == "" {
+		return 0, nil
+	}
+	if len(input) < 2 {
+		return 0, fmt.Errorf("invalid time filter: %s", input)
+	}
+	nVal := input[:len(input)-1]
+	unit := input[len(input)-1]
+	var amount int64
+	_, err := fmt.Sscanf(nVal, "%d", &amount)
+	if err != nil || amount <= 0 {
+		return 0, fmt.Errorf("invalid duration: %s", input)
+	}
+	var duration time.Duration
+	switch unit {
+	case 'm':
+		duration = time.Duration(amount) * time.Minute
+	case 'h':
+		duration = time.Duration(amount) * time.Hour
+	case 'd':
+		duration = time.Duration(amount) * 24 * time.Hour
+	case 'y':
+		duration = time.Duration(amount) * 365 * 24 * time.Hour
+	default:
+		return 0, fmt.Errorf("invalid duration unit: %c", unit)
+	}
+	cutoff := time.Now().Add(-duration).Unix()
+	return cutoff, nil
+}
+
 func brainz() {
 	var listens []Listen = getAllListens()
 	for _, listen := range listens {
+		if cutOffTime > 0 && listen.ListenedAt < cutOffTime {
+			continue
+		}
 		match, err := regexp.MatchString("(?i)"+searchPattern, listen.String())
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -228,6 +269,13 @@ func main() {
 
 	if maxCount < 1 {
 		fmt.Println("Error: invalid maxCount:", maxCount)
+		usage()
+	}
+
+	var err error
+	cutOffTime, err = parseTimeFilter(timeFilter)
+	if err != nil {
+		fmt.Println("Error:", err)
 		usage()
 	}
 
