@@ -40,13 +40,12 @@ type Listen struct {
 }
 
 // Time the Track/Recording was listened to.
-func (listen Listen) Time() time.Time {
-	return time.Unix(listen.ListenedAt, 0)
+func (listen Listen) Time() string {
+	return time.Unix(listen.ListenedAt, 0).Format(time.RFC3339)
 }
 
 func (listen Listen) String() string {
-	return "<" + listen.Time().Format(time.RFC3339) + "> " +
-		listen.Track.Artist + " - \"" + listen.Track.Name + "\""
+	return "[" + listen.Time() + "] " + listen.Track.Artist + " - \"" + listen.Track.Name + "\""
 }
 
 // Payload contains a set of Listen's.
