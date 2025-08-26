@@ -72,6 +72,10 @@ func log(format string, args ...any) {
 	}
 }
 
+func perr(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format, args...)
+}
+
 func deleteListen(listen Listen) bool {
 	url := ListenBrainzAPI + "/delete-listen"
 
@@ -89,7 +93,7 @@ func deleteListen(listen Listen) bool {
 	// Create a new http get request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonpayload))
 	if err != nil {
-		fmt.Println("error creating request:", err)
+		perr("error creating request: %s", err)
 		return false
 	}
 	req.Header.Set("content-type", "application/json")
@@ -245,7 +249,7 @@ func brainz() {
 		if match {
 			fmt.Println(listen)
 			if deleteListens && !deleteListen(listen) {
-				fmt.Printf("Warning: failed deleting listen: %s", listen)
+				perr("warning: failed deleting listen: %s", listen)
 			}
 		}
 	}
@@ -264,19 +268,19 @@ func main() {
 	}
 
 	if userName == "" {
-		fmt.Println("Error: username is missing.")
+		perr("error: username is missing.")
 		usage()
 	}
 
 	if maxCount < 1 {
-		fmt.Println("Error: invalid maxCount:", maxCount)
+		perr("error: invalid maxCount: %d", maxCount)
 		usage()
 	}
 
 	var err error
 	cutOffTime, err = parseTimeFilter(timeFilter)
 	if err != nil {
-		fmt.Println("Error:", err)
+		perr("error: %s", err)
 		usage()
 	}
 
