@@ -107,66 +107,53 @@ func lastTimestamp(listens []Listen) int64 {
 	return listens[len(listens)-1].ListenedAt
 }
 
-func getAllListens() []Listen {
+func getAllListens() ([]Listen, error) {
 	var listens []Listen
-	timestamp := int64(0)
+	var timestamp int64 = 0
 	for {
-		page := getListens(timestamp)
-		if page.length() == 0 {
-			break
+		page, err := getListens(timestamp)
+		if err != nil {
+			return nil, err
 		}
 		timestamp = lastTimestamp(page.Payload.Listens)
 		for _, listen := range page.Payload.Listens {
 			if cutOffTime > 0 && listen.ListenedAt < cutOffTime {
-				return listens
+				return listens, nil
 			}
 			listens = append(listens, listen)
 			if int64(len(listens)) >= maxCount {
-				return listens
+				return listens, nil
 			}
 		}
 	}
-	return listens
 }
 
-func getListens(max int64) Listens {
+func getListens(last int64) (*Listens, error) {
 	url := fmt.Sprintf("%s/user/%s/listens?count=%d",
 		ListenBrainzAPI, userName, ItemsPerPage)
-
-	if max > 0 {
-		url = fmt.Sprintf("%s&max_ts=%d", url, max)
+	if last > 0 {
+		url = fmt.Sprintf("%s&max_ts=%d", url, last)
 	}
-
 	client := &http.Client{}
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return Listens{}
+		return nil, fmt.Errorf("creating request: %s", err)
 	}
-
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return Listens{}
+		return nil, fmt.Errorf("sending request: %s", err)
 	}
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return Listens{}
+		return nil, fmt.Errorf("reading response body: %s", err)
 	}
-
 	var listens Listens
-
 	err = json.Unmarshal(body, &listens)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return Listens{}
+		return nil, fmt.Errorf("decoding response: %s", err)
 	}
-
-	return listens
+	return &listens, nil
 }
 
 var (
@@ -227,16 +214,18 @@ func parseTimeFilter(input string) (int64, error) {
 	return cutoff, nil
 }
 
-func brainz() {
-	var listens []Listen = getAllListens()
+func brainz() error {
+	listens, err := getAllListens()
+	if err != nil {
+		return err
+	}
 	for _, listen := range listens {
 		if cutOffTime > 0 && listen.ListenedAt < cutOffTime {
 			continue
 		}
 		match, err := regexp.MatchString("(?i)"+searchPattern, listen.String())
 		if err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
+			return err
 		}
 		if match {
 			fmt.Println(listen)
@@ -245,11 +234,11 @@ func brainz() {
 			}
 		}
 	}
+	return nil
 }
 
 func main() {
 	flag.Parse()
-
 	if showUsage {
 		usage()
 	}
@@ -272,6 +261,8 @@ func main() {
 		perr("error: %s", err)
 		usage()
 	}
-
-	brainz()
+	err = brainz()
+	if err != nil {
+		panic(err)
+	}
 }
